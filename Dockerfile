@@ -1,13 +1,16 @@
-FROM nginx:alpine
-COPY . /usr/share/nginx/html
-# EXPOSE 80
-# Copy .env file and shell script to container
-WORKDIR /usr/share/nginx/html
-COPY ./getConfig.sh .
-COPY ./configMap.env .
-# Add bash
-RUN apk add --no-cache bash
-# Make our shell script executable
-RUN chmod +x env.sh
-# Start Nginx server in addition to calling env.sh to generate our script file
-CMD ["/bin/bash", "-c", "/usr/share/nginx/html/getConfig.sh && nginx -g \"daemon off;\""]
+# build stage
+FROM node:13.0.1-alpine as build-stage
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# production stage
+FROM node:13.0.1-alpine as production-stage
+COPY --from=build-stage /app/dist ./dist
+COPY docker_entrypoint.sh generate_env-config.sh ./
+RUN npm install -g serve 
+RUN chmod +x docker_entrypoint.sh generate_env-config.sh
+EXPOSE 5000
+CMD ["/bin/sh", "docker_entrypoint.sh"]
