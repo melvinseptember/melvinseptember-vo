@@ -1,4 +1,0 @@
-cat <<EOF
-window.VUE_APP_FOO="${VUE_APP_FOO}";
-window.VUE_APP_DOMAIN="${VUE_APP_DOMAIN}";
-EOF
